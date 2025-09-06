@@ -1,8 +1,14 @@
+'use client'
+
 import FeedCard from "@/component/FeedCard";
-import { } from 'react-icons'
+import {CredentialResponse,GoogleLogin} from '@react-oauth/google'
 import { BsBell, BsBookmark, BsEnvelope, BsTwitter } from "react-icons/bs";
-import React from "react";
+import React, { useCallback } from "react";
+import type { RequestDocument } from "graphql-request";
 import { BiHash, BiHomeCircle, BiUser } from "react-icons/bi";
+import toast from "react-hot-toast";
+import { graphqlClient } from "@/client/api";
+import { verifyUserGoogleTokenQuery } from "@/graphql/query/user";
 
 interface SocialSidebarButton{
   title:string
@@ -31,6 +37,30 @@ const socialSidebarButton:SocialSidebarButton[]=[
   },
 ]
 export default function Home() {
+  const handleLoginWithGoogle=useCallback(async(cred:CredentialResponse)=>{
+    const googletoken =cred.credential;
+    if(!googletoken) return toast.error("Google token is required");
+    const {verifyGoogleToken}=await graphqlClient.request<
+      { verifyGoogleToken: string },
+      { token: string }
+    >(
+      verifyUserGoogleTokenQuery as unknown as RequestDocument,
+      { token: googletoken }
+    );
+    console.log("verifyGoogleToken",verifyGoogleToken);
+
+    if(!verifyGoogleToken) return toast.error("Invalid Google token");
+    if(verifyGoogleToken){
+      localStorage.setItem("__twitter_auth_token", verifyGoogleToken);
+    }
+    // toast.success("Verified your Google token");
+    // localStorage.setItem("token",verifyGoogleToken);
+
+    // window.location.reload();
+    // console.log("navigated to the home page",verifyGoogleToken);
+  
+    
+  },[]);
 
 
 
@@ -48,7 +78,7 @@ export default function Home() {
             <button className="bg-blue-500 text-white rounded-full px-20 py-3 mt-4 hover:bg-blue-600">Tweet</button>
           </div>
       </div>
-      <div className="col-span-6 overflow-y-scroll scrollbar-hide border-r-[0.5px] border-l-[0.5px]  border-gray-600">
+      <div className="col-span-6 flex flex-col justify-center mask-origin-content overflow-y-scroll  overscroll-none border-r-[0.5px] border-l-[0.5px]  border-gray-600">
         <FeedCard />
         <FeedCard />
         <FeedCard />
@@ -59,7 +89,12 @@ export default function Home() {
         <FeedCard />
 
       </div>
-      <div className="col-span-3"></div>
+      <div className="col-span-3 pt-4">
+        <div className="flex justify-center items-center border p-5">
+          <h1 className="m-2 text-xl">New to Twitter? Sign up</h1>
+        <GoogleLogin onSuccess={(cred:CredentialResponse)=>handleLoginWithGoogle(cred)}/>
+        </div>
+        </div>
 
 
      </div>

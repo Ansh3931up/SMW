@@ -6,7 +6,7 @@ import { AiOutlineHeart } from 'react-icons/ai';
 import { BsCloudUploadFill } from 'react-icons/bs';
 
 const FeedCard:React.FC =() => {
-    return <div className='border border-r-0 border-l-0 border-b-0 border-gray-600   p-4 mb-4 hover:bg-slate-900 transition-all duration-300 ease-in-out cursor-pointer w-full max-w-2xl'>
+    return <div className='border border-r-0 border-l-0 border-b-0 border-gray-600   p-4 mb-4 hover:bg-slate-900 transition-all duration-300 ease-in-out cursor-pointer w-full '>
         <div className="grid grid-cols-12 gap-3">
             <div className='col-span-1 '>
                 <Image src="https://avatars.githubusercontent.com/u/129533154?v=4" width={70} height={70} alt="user-image" className='rounded-full '/>
