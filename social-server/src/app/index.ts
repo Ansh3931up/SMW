@@ -4,11 +4,17 @@ import { expressMiddleware } from '@as-integrations/express5';
 import {User} from './user';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import JWTService from '../services/jwt';
 
 export async function initServer(){
     const app=express();
     app.use(bodyParser.json());
-    app.use(cors());
+    app.use(cors(
+        {
+            origin:['http://localhost:3000','http://127.0.0.1:3000'],
+            credentials:true,
+        }
+    ));
     const graphqlServer=new ApolloServer({
         typeDefs:`
         ${User.types}
@@ -23,7 +29,20 @@ export async function initServer(){
         },
     });
     await graphqlServer.start();
-    app.use('/graphql',expressMiddleware(graphqlServer));
+    app.use('/graphql',expressMiddleware(graphqlServer,{
+        context:async({req,res})=>{
+            const auth = req.headers.authorization;
+            let user: ReturnType<typeof JWTService.decodeToken> | undefined;
+            if (auth && auth.startsWith('Bearer ')) {
+                try {
+                    user = JWTService.decodeToken(auth.slice(7));
+                } catch {
+                    user = undefined;
+                }
+            }
+            return { user };
+        }
+    }));
     return app;
 
 }

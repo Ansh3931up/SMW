@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { prismaClient } from '../../client/db';
 import JWTService from '../../services/jwt';
+import { GraphqlContext } from 'src/interface';
 
 interface GoogleTokenResult{
     iss: string;
@@ -29,6 +30,7 @@ const queries={
         const {data}=await axios.get<GoogleTokenResult>(googleOauthURL.toString(),{
             responseType:'json'
         })
+        console.log(data);
 
         if(!data.email || !data.given_name || !data.family_name){
             throw new Error("Invalid Google token: missing required claims");
@@ -36,7 +38,7 @@ const queries={
         const email = data.email!;
         const firstName = data.given_name!;
         const lastName = data.family_name!;
-        const profileImageUrl = data.picture ?? null;
+        const profileImageUrl = data.picture;
 
         const user=await prismaClient.user.findUnique({
             where:{email},
@@ -59,7 +61,16 @@ const queries={
         return GenToken;
 
 
-    }
+    },
+
+    getCurrentUser:async(parent:any, args:any,ctx:GraphqlContext)=>{
+        const id=ctx.user?.id;
+        if(!id) return null;
+        const user=await prismaClient.user.findUnique({where:{id}});
+        if(!user) return null;
+        return user;
+        
+    },
 };
 
 export const resolver={queries};

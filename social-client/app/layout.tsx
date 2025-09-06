@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import {GoogleOAuthProvider} from '@react-oauth/google'
+// moved providers into a Client Component to avoid passing class instances from server to client
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
+import Providers from "./providers";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,10 +28,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-      <GoogleOAuthProvider clientId="516607384733-101193hvvoqsaua0kni4e7uj62o36cr9.apps.googleusercontent.com">
-      {children}
-      </GoogleOAuthProvider>
-       
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

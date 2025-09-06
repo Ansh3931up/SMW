@@ -18,20 +18,20 @@ const db_1 = require("../../client/db");
 const jwt_1 = __importDefault(require("../../services/jwt"));
 const queries = {
     verifyGoogleToken: (parent_1, _a) => __awaiter(void 0, [parent_1, _a], void 0, function* (parent, { token }) {
-        var _b;
         const googletoken = token;
         const googleOauthURL = new URL(`https://oauth2.googleapis.com/tokeninfo`);
         googleOauthURL.searchParams.set('id_token', googletoken);
         const { data } = yield axios_1.default.get(googleOauthURL.toString(), {
             responseType: 'json'
         });
+        console.log(data);
         if (!data.email || !data.given_name || !data.family_name) {
             throw new Error("Invalid Google token: missing required claims");
         }
         const email = data.email;
         const firstName = data.given_name;
         const lastName = data.family_name;
-        const profileImageUrl = (_b = data.picture) !== null && _b !== void 0 ? _b : null;
+        const profileImageUrl = data.picture;
         const user = yield db_1.prismaClient.user.findUnique({
             where: { email },
         });
@@ -51,7 +51,17 @@ const queries = {
         const GenToken = jwt_1.default.generateTokenForUser(userInDb);
         console.log(GenToken);
         return GenToken;
-    })
+    }),
+    getCurrentUser: (parent, args, ctx) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const id = (_a = ctx.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!id)
+            return null;
+        const user = yield db_1.prismaClient.user.findUnique({ where: { id } });
+        if (!user)
+            return null;
+        return user;
+    }),
 };
 exports.resolver = { queries };
 // similar to the controllers
